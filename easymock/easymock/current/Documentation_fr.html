@@ -4,15 +4,15 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />	
-<title>EasyMock 3.0 Readme</title>
+<title>EasyMock 3.2 Readme</title>
 <link rel="stylesheet" href="easymock.css" />
 </head>
 <body><div class="bodywidth">
 
-<h2>EasyMock 3.0 Readme</h2>
+<h2>EasyMock 3.2 Readme</h2>
  
-<p>Documentation de la version 3.0 (2010-05-08)<br />
-&copy; 2001-2010 <a href="http://www.offis.de">OFFIS</a>, <a href="http://tammofreese.de">Tammo Freese</a>, <a href="http://www.ossia-conseil.com/blog/henri/">Henri Tremblay</a>.
+<p>Documentation de la version 3.2 (2013-07-11)<br />
+&copy; 2001-2013 <a href="http://www.offis.de">OFFIS</a>, <a href="http://tammofreese.de">Tammo Freese</a>, <a href="http://henritremblay.blogspot.fr/">Henri Tremblay</a>.
 </p>
 <p><i>Documentation traduite originellement de l'anglais par <a href="http://alexdp.free.fr">Alexandre de Pellegrin</a>.
 Maintenue par Henri Tremblay.</i>
@@ -66,7 +66,7 @@ suivante à votre pom.xml:
     &lt;dependency&gt;
       &lt;groupId&gt;org.easymock&lt;/groupId&gt;
       &lt;artifactId&gt;easymock&lt;/artifactId&gt;
-      &lt;version&gt;3.0&lt;/version&gt;
+      &lt;version&gt;3.2&lt;/version&gt;
       &lt;scope&gt;test&lt;/scope&gt;
     &lt;/dependency&gt;
 </pre>
@@ -74,13 +74,13 @@ Vous pouvez, bien évidemment, n'importe quel outil de gestion de dépendances c
 avec le référentiel Maven.
 <h3>Manuellement</h3>
 <ul>
-<li>Décompressez le fichier zip d'EasyMock (<code>easymock-3.0.zip</code>).</li>
-<li>Allez dans le répertoire <code>easymock-3.0</code>.</li>
+<li>Décompressez le fichier zip d'EasyMock (<code>easymock-3.2.zip</code>).</li>
+<li>Allez dans le répertoire <code>easymock-3.2</code>.</li>
 <li>Ajoutez le jar d'EasyMock (<code>easymock.jar</code>) à votre classpath.</li>
 <li>Pour pouvoir mocker des classes, ajoutez aussi <a href="http://www.objenesis.org">Objenesis</a> et <a href="http://cglib.sourceforge.net/">Cglib</a> à votre classpath.</li>
-<li>Les tests sont dans <code>easymock-3.0-tests.jar</code> et peuvent être lancés à l'aide d'un JUnit TestRunner 
+<li>Les tests sont dans <code>easymock-3.2-tests.jar</code> et peuvent être lancés à l'aide d'un JUnit TestRunner 
 en ayant JUnit 4.7, EasyMock, cglib et Objenesis dans votre classpath.</li>
-<li>Le code source d'EasyMock est situé dans <code>easymock-3.0-sources.jar</code>.</li>
+<li>Le code source d'EasyMock est situé dans <code>easymock-3.2-sources.jar</code>.</li>
 </ul>
 <h2>
 Utilisation
@@ -117,9 +117,11 @@ objets liés (des listeners dans ce cas) à la classe nommée <code>ClassUnderTe
 </p>
 <pre>
 public class ClassUnderTest {
-    // ...    
-    public void addListener(Collaborator listener) {
-        // ... 
+
+    private Collaborator listener;
+    // ...
+    public void setListener(Collaborator listener) {
+        this.listener = listener;
     }
     public void addDocument(String title, byte[] document) { 
         // ... 
@@ -134,8 +136,8 @@ public class ClassUnderTest {
 </pre>
 <p>
 Le code de la classe et de l'interface est disponible dans
-le package
-<code>org.easymock.samples</code> dans <code>samples.zip</code>.
+le package <code>org.easymock.samples</code> dans <code>easymock-3.2-samples.jar</code>
+inclue dans la livraison d'EasyMock.
 </p>
 <p>
 Les exemples qui suivent supposent que vous êtes familier avec le framework de test JUnit.
@@ -147,7 +149,7 @@ Votre premier Mock Object
 <p>
 Nous allons maintenant construire un cas de test et jouer avec pour
 comprendre les fonctionnalités du package EasyMock. Le
-fichier <code>samples.zip</code> contient une version modifiée de ce test. 
+fichier <code>easymock-3.2-samples.jar</code> contient une version modifiée de ce test. 
 Notre premier test devra vérifier que la suppression d'un document non existant <strong>ne doit pas</strong>
 provoquer la notification de l'objet lié. Voici le test dans la définition du Mock Object:
 </p>
@@ -164,7 +166,7 @@ public class ExampleTest {
     @Before
     public void setUp() {
         classUnderTest = new ClassUnderTest();
-        classUnderTest.addListener(mock);
+        classUnderTest.setListener(mock);
     }
 
     @Test
@@ -240,6 +242,44 @@ java.lang.AssertionError:
     ...
 </pre>
 
+<h3>
+    Utiliser les annotations
+</h3>
+<p>
+Depuis EasyMock 3.2, il est maintenant possible de créer un Mock Object à l'aide d'annotations. C'est une méthode
+à la fois simple et rapide pour créer vos Mock Objects et les injecter à la classe testée. Reprenons l'exemple
+ci-dessus en utilisant les annotations:
+</p>
+<pre>
+import static org.easymock.EasyMock.*;
+
+import org.easymock.EasyMockRunner;
+import org.easymock.TestSubject;
+import org.easymock.Mock;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith(EasyMockRunner.class)
+public class ExampleTest {
+
+    @TestSubject
+    private ClassUnderTest classUnderTest = new ClassUnderTest(); // 2
+
+    @Mock
+    private Collaborator mock; // 1
+
+    @Test
+    public void testRemoveNonExistingDocument() {
+        replay(mock);
+        classUnderTest.removeDocument("Does not exist");
+    }
+}
+</pre>
+<p>
+Le <code>mock</code> est instancié par le runner à l'étape 1. Il est ensuite assigné, toujours par le runner,
+au champs <code>listener</code> de <code>classUnderTest</code> à l'étape 2. La méthode <code>setUp</code> n'est
+donc plus nécessaire étant donné que toute l'initialisation a déjà été effectuée par le runner.
+</p>
 <h3>
    Ajouter un comportement
 </h3>
@@ -526,7 +566,7 @@ de l'ordre des arguments briseront vos tests. Vous êtes prévenu.
 </p>
 <p>
 Une alternative à <code>IAnswer</code> sont les méthodes <code>andDelegateTo</code> et 
-<code>andStubsDelegateTo</code>. Elles permettent de déléguer un appel à une
+<code>andStubDelegateTo</code>. Elles permettent de déléguer un appel à une
 implémentation concrète de l'interface "mockées" et qui fournira la valeur de retour. 
 L'avantage est que les paramètres normalement récupéré avec <code>EasyMock.getCurrentArguments()</code> 
 pour <code>IAnswer</code> sont maintenant passés à la méthode de l'implémentation concrète. 
@@ -686,7 +726,7 @@ Voici quelques comparateurs prédéfinis disponible:
 <dt><code>eq(X value)</code></dt>
 <dd>Vérifie que la valeur reçue égale la valeur attendue. Disponible pour tous les types primitifs et objets.</dd>
 
-<dt><code>anyBoolean()</code>, <code>anyByte()</code>, <code>anyChar()</code>, <code>anyDouble()</code>, <code>anyFloat()</code>, <code>anyInt()</code>, <code>anyLong()</code>, <code>anyObject()</code>, <code>anyObject(Class clazz)</code>, <code>anyShort()</code></dt>
+<dt><code>anyBoolean()</code>, <code>anyByte()</code>, <code>anyChar()</code>, <code>anyDouble()</code>, <code>anyFloat()</code>, <code>anyInt()</code>, <code>anyLong()</code>, <code>anyObject()</code>, <code>anyObject(Class clazz)</code>, <code>anyShort()</code>, <code>anyString()</code></dt>
 <dd>Laisse passer n'importe quelle valeur. Disponible pour tous les types primitifs et objets.</dd>
 
 <dt><code>eq(X value, X delta)</code></dt>
@@ -732,7 +772,7 @@ ou égale/supérieure à la valeur attendue. Disponible pour tous les types prim
 <dt><code>cmp(X value, Comparator&lt;X&gt; comparator, LogicalOperator operator)</code></dt>
 <dd>Vérifie que <code>comparator.compare(reçue, value) operator 0</code> où <code>operator</code> est &lt;,&lt;=,&gt;,&gt;= ou ==.</dd>
 
-<dt><code>capture(Capture&lt;T&gt; capture)</code></dt>
+<dt><code>capture(Capture&lt;T&gt; capture)</code>, <code>captureXXX(Capture&lt;T&gt; capture)</code></dt>
 <dd>Laisse passer n'importe quelle valeur mais la capture dans le paramètre <code>Capture</code> pour un usage ultérieurs. Vous pouvez utiliser <code>and(someMatcher(...), capture(c))</code> pour 
 capturer le paramètre d'un appel de méthode en particulier. Vous pouvez aussi spécifier le <code>CaptureType</code> pour indiquer à l'objet
 <code>Capture</code> de conserver le premier (<code>FIRST</code>), le dernier (<code>LAST</code>), tous (<code>ALL</code>) ou aucun (<code>NONE</code>) des objets capturés</dd>
@@ -866,8 +906,8 @@ ou <code>false</code>), utilisez <code>create<i>Nice</i>Mock()</code> au lieu de
 
 <a id="Object_Methods"/><h3>Méthodes de la classe Object</h3>
 <p>
-Les comportements des trois méthodes <code>equals()</code>,
-<code>hashCode()</code> et <code>toString()</code>
+Les comportements des quatre méthodes <code>equals()</code>,
+<code>hashCode()</code>, <code>toString()</code> et <code>finalize()</code>
 ne peuvent être changés sur des Mock Objects créés avec EasyMock,
 même si elles font partie de l'interface duquel le Mock Object est créé.
 </p>
@@ -1016,15 +1056,14 @@ actuellement supportées sont:
 <dd>Ne pas permettre le mocking de classes (permettre uniquement le mocking d'interfaces). Valeurs possibles: "true" ou "false". Défaut: false</dd>
 </dl>
 <p>
-Les propriétés peuvent être mise de trois façons. Chaque étape de la liste peut écraser une précédente.
+Les propriétés peuvent être fixées de deux façons.
 </p>
 <ul>
 <li>Dans le fichier <code>easymock.properties</code> mis dans le package défaut du classpath 
 </li>
-<li>Comme propriété système 
-</li>
 <li>En appelant <code>EasyMock.setEasyMockProperty</code>. Des constantes sont disponibles 
-dans la classe <code>EasyMock</code>
+dans la classe <code>EasyMock</code>. Évidemment, fixer une propriété dans le code écrase
+toute propriété mise dans <code>easymock.properties</code>
 </li>
 </ul>
 <h3>
@@ -1077,7 +1116,7 @@ diverses méthodes pour facilement créer un mock partiel. Jettez un coup d'oeil
 pour en savoir plus.
 </p>
 <p><b>Remarque:</b> EasyMock fournit un comportement par défault pour les méthodes de la classe 
-Object (<i>equals, hashCode, toString</i>). Toutefois, pour un mock partiel, si ces méthodes ne sont pas
+Object (<i>equals, hashCode, toString, finalize</i>). Toutefois, pour un mock partiel, si ces méthodes ne sont pas
 mockées explicitement, elles auront leur comportement normal et non celui par défaut d'EasyMock.
 </p>
 <h3>Test interne d'une classe</h3>  
@@ -1129,7 +1168,7 @@ un class loader différent de la sérialization. Ce cas n'a pas été testé.
 <h3>Limitations du mocking de classes</h3>
 <p> 
 Pour être cohérent avec le mocking d'interfaces, EasyMock fournit aussi un comportement par défaut 
-pour <code>equals()</code>, <code>toString()</code> et <code>hashCode()</code> pour les classes mockées. 
+pour <code>equals()</code>, <code>toString()</code>, <code>hashCode()</code> et <code>finalize()</code> pour les classes mockées. 
 Cela signifie que vous ne pourrez enregistrer votre propre comportement pour ces méthodes. Cette 
 limitation être considérée comme une fonctionnalité permettant de ne pas s'occuper de ces
 méthodes.
@@ -1149,7 +1188,31 @@ L'instantiation des classes est faite par
 <a href="http://objenesis.googlecode.com/svn/docs/index.html">Objenesis</a>.
 Les JVMs supportées sont listées <a href="http://code.google.com/p/objenesis/wiki/ListOfCurrentlySupportedVMs">ici</a>.
 </p>
-
+<h3>Support Android</h3>
+<p>
+    Depuis la version 3.2, EasyMock peut être utilisé sur une VM Android (Dalvik). Il suffit d'ajouter la dépendance à
+    votre projet apk utilisé pour les tests de votre applicaiton. Il est aussi préférable d'exclure cglib étant donné
+    que dexmaker sera de toute façon utiliser en remplacement. Vous devrez aussi ajouter dexmaker explicitement étant
+    donné qu'il s'agit d'une dépendance optionnelle. Si vous utilisez Maven, vous finirez avec les dépendances suivantes
+</p>
+<pre>
+&lt;dependency&gt;
+  &lt;groupId&gt;org.easymock&lt;/groupId&gt;
+  &lt;artifactId&gt;easymock&lt;/artifactId&gt;
+  &lt;version&gt;3.2&lt;/version&gt;
+  &lt;exclusions&gt;
+    &lt;exclusion&gt;
+      &lt;groupId&gt;cglib&lt;/groupId&gt;
+      &lt;artifactId&gt;cglib-nodep&lt;/artifactId&gt;
+    &lt;/exclusion&gt;
+  &lt;/exclusions&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;com.google.dexmaker&lt;/groupId&gt;
+  &lt;artifactId&gt;dexmaker&lt;/artifactId&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
 <h2>
 Développement d'EasyMock
 </h2>
@@ -1179,44 +1242,9 @@ Rodrigo Damazio, Bruno Fonseca, Ben Hutchison et de nombreux autres.
 <p>
 Merci de consulter la <a href="http://www.easymock.org">page d'accueil EasyMock</a> 
 pour être informé des nouvelles versions et transmettez vos bogues et suggestions à
-<a href="mailto:easymock@yahoogroups.com?subject=EasyMock 3.0 feedback">EasyMock Yahoo!Group</a> (en anglais SVP).
+<a href="mailto:easymock@yahoogroups.com?subject=EasyMock ${project.version} feedback">EasyMock Yahoo!Group</a> (en anglais SVP).
 Si vous souhaitez souscrire au EasyMock Yahoo!Group, envoyez un message à
 <a href="mailto:easymock-subscribe@yahoogroups.com">easymock-subscribe@yahoogroups.com</a>.
-</p>
-<h3>
-EasyMock Version 3.0 (2010-05-08), Notes de Mise à Jour
-</h3>
-<p>
-Nouveau dans la version 3.0:
-</p>
-<ul>
-<li>EasyMock CE is maintenant fusionné avec EasyMock (2325762)
-</li>
-<li>Ajout de "boolean capture(...)" par complétion (je ne pense pas que c'est utile)
-</li>
-<li>Impossible de répondre en déléguant à une méthode protégée (2891256)
-</li>
-<li>Un échec lors de la phase d'enregistrement peut impacter les tests subséquents (2914683)
-</li>
-<li>Returner une erreur spécifique lorsqu'un null est enregistré comme retour sur une méthode retournant un type primitif (2936175)
-</li>
-<li>Désactiver le mocking de classes à l'aide de <code>EasyMock.DISABLE_CLASS_MOCKING</code>
-</li>
-<li>Retirer les classes dépréciées d'EasyMock 1
-</li>
-<li>Ne pas lancer d'exception si on mock n'a pas de méthode <code>toString</code> (2937916)
-</li>
-<li>Message d'erreur plus clair lorsque des paramètres nues sont mélangés avec des matchers lors de l'enregistrement d'une méthode (2860190)
-</li>
-<li>Vérifier s'il reste des résultats disponible dans un comportement enregistré avant de matcher avec celui-ci (2940400)
-</li>
-<li>Permettre les mocks de classes provenant d'un plugin Eclipse (2994002)
-</li>
-<li>Ajout de <code>isNull(Class&lt;T&gt;)</code>, <code>notNull(Class&lt;T&gt;)</code> et <code>anyObject(Class&lt;T&gt;)</code> pour faciliter la gestion des génériques (2958636)
-</li>
-</ul>
-<p>
-Pour des notes de mise à jour plus anciennes, voir la <a href="Documentation.html">documentation de EasyMock 2 et EasyMock 2 Class Extension</a>.
 </p>
 </div>
 </body>
