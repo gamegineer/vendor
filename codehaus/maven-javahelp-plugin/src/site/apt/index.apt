@@ -1,0 +1,24 @@
+------
+ Introduction
+ ------
+ Author
+ ------
+ DD MMMM YYYY
+ ------
+
+
+Plugin Name
+
+  This plugin invokes the functionality of the jhindexer tool packaged with the javahelp system.
+
+* Goals Overview
+
+  General Information about the goals.
+
+  * {{{jhindex.html}javahelp:index}} Goal which invokes the Javahelp indexer. This will create a 
+  search index database for your javahelp set. Note that currently this goal can only be invoked 
+  on a directory but all html files under that directory will be indexed recursively.
+
+* Usage
+
+  Instructions on how to use the Plugin Name can be found {{{usage.html}here}}.
