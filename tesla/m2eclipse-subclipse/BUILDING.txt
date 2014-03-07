@@ -1,0 +1,7 @@
+Version 0.13.0 requires Maven 3.0.x to build successfully.  Maven 3.1.x fails to build.
+
+Build:
+	mvn clean install
+
+Deploy:
+	mvn deploy:deploy-file -Durl=http://localhost:9089/nexus/content/repositories/snapshots/ -DrepositoryId=g8r-snapshots -Dfile=org.sonatype.m2e.subclipse.feature\target\org.sonatype.m2e.subclipse.feature-0.13.0-SNAPSHOT-site.zip -DgroupId=org.sonatype.m2e.subclipse -DartifactId=org.sonatype.m2e.subclipse.repository -Dversion=0.13.0-SNAPSHOT -Dpackaging=zip
